@@ -20,7 +20,7 @@ body {
   margin: 0;
   min-height: 100vh;
   overflow-x: hidden;
-  font-family: Georgia, "Times New Roman", "Hiragino Mincho ProN", serif;
+  font-family: "Hiragino Maru Gothic ProN", "Yu Gothic", "BIZ UDGothic", Georgia, "Times New Roman", sans-serif;
   background: radial-gradient(circle at 50% -10%, rgba(232, 196, 104, 0.16), transparent 45%),
     repeating-linear-gradient(90deg, #271a0f 0px, #271a0f 2px, #20150b 2px, #20150b 4px),
     linear-gradient(180deg, #1c130c 0%, #120c07 100%);
@@ -422,7 +422,7 @@ select {
   border: 1px solid rgba(80, 56, 30, 0.4);
   border-radius: 10px;
   font-size: 1rem;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: "Hiragino Maru Gothic ProN", "Yu Gothic", "BIZ UDGothic", Georgia, "Times New Roman", sans-serif;
   text-align: left;
   color: var(--ink);
   background: linear-gradient(180deg, var(--parchment), var(--parchment-dark));
@@ -448,7 +448,7 @@ select {
   left: 18px;
   transform: translateY(-50%);
   color: rgba(59, 42, 26, 0.55);
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: "Hiragino Maru Gothic ProN", "Yu Gothic", "BIZ UDGothic", Georgia, "Times New Roman", sans-serif;
   font-size: 1rem;
   pointer-events: none;
 }
@@ -471,7 +471,7 @@ button {
   padding: 16px 20px;
   background: linear-gradient(160deg, var(--gold-bright), var(--gold));
   color: #2b1b0e;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: "Hiragino Maru Gothic ProN", "Yu Gothic", "BIZ UDGothic", Georgia, "Times New Roman", sans-serif;
   letter-spacing: 0.04em;
   border: 1px solid rgba(80, 56, 18, 0.45);
   border-radius: 10px;
