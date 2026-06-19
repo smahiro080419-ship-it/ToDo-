@@ -17,6 +17,33 @@ dueInput.addEventListener("input", updateDuePlaceholder);
 dueInput.addEventListener("change", updateDuePlaceholder);
 updateDuePlaceholder();
 
+const INSTALL_BANNER_DISMISSED_KEY = "installBannerDismissed";
+
+const isStandaloneApp = () =>
+  window.navigator.standalone === true || window.matchMedia("(display-mode: standalone)").matches;
+
+const isIos = () => /iphone|ipad|ipod/i.test(window.navigator.userAgent);
+
+const setupInstallBanner = () => {
+  const banner = document.getElementById("installBanner");
+  const closeButton = document.getElementById("installBannerClose");
+  if (!banner || !closeButton) {
+    return;
+  }
+
+  if (isStandaloneApp() || !isIos() || localStorage.getItem(INSTALL_BANNER_DISMISSED_KEY) === "1") {
+    return;
+  }
+
+  banner.hidden = false;
+  closeButton.addEventListener("click", () => {
+    banner.hidden = true;
+    localStorage.setItem(INSTALL_BANNER_DISMISSED_KEY, "1");
+  });
+};
+
+setupInstallBanner();
+
 const STORAGE_KEY = "todoItems";
 const ALERT_CHECK_INTERVAL_MS = 60 * 1000;
 const alertedTodoIds = new Set();
