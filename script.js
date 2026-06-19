@@ -90,14 +90,23 @@ const urlBase64ToUint8Array = (base64String) => {
   return Uint8Array.from([...rawData].map((char) => char.charCodeAt(0)));
 };
 
+const toUtcIso = (dueTime) => {
+  if (!dueTime) {
+    return null;
+  }
+  const date = new Date(dueTime);
+  return Number.isNaN(date.getTime()) ? null : date.toISOString();
+};
+
 const syncTodosToServer = (todos) => {
   if (!isPushConfigured()) {
     return;
   }
+  const todosForServer = todos.map((todo) => ({ ...todo, dueTime: toUtcIso(todo.dueTime) }));
   fetch(`${WORKER_URL}/api/sync`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ clientId: getClientId(), todos }),
+    body: JSON.stringify({ clientId: getClientId(), todos: todosForServer }),
   }).catch(() => {});
 };
 
