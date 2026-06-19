@@ -3,6 +3,7 @@ const dueInput = document.getElementById("dueInput");
 const notifyInput = document.getElementById("notifyInput");
 const addButton = document.getElementById("addButton");
 const todoList = document.getElementById("todoList");
+const enableNotifyButton = document.getElementById("enableNotifyButton");
 
 const STORAGE_KEY = "todoItems";
 const ALERT_CHECK_INTERVAL_MS = 60 * 1000;
@@ -328,9 +329,6 @@ const addTodo = () => {
     return;
   }
 
-  ensureNotificationPermission();
-  registerPushSubscription();
-
   const todos = loadTodos();
   todos.push({ text, dueTime: dueTime || null, done: false, notify, lastNotifiedDate: null });
   saveTodos(todos);
@@ -338,6 +336,32 @@ const addTodo = () => {
   dueInput.value = "";
   renderTodos();
 };
+
+const updateEnableNotifyButton = () => {
+  if (!("Notification" in window)) {
+    enableNotifyButton.textContent = "この端末は通知に対応していません";
+    enableNotifyButton.disabled = true;
+    return;
+  }
+  if (Notification.permission === "granted") {
+    enableNotifyButton.textContent = "通知は有効です";
+    enableNotifyButton.disabled = true;
+    return;
+  }
+  if (Notification.permission === "denied") {
+    enableNotifyButton.textContent = "通知が拒否されています(端末の設定から許可してください)";
+    enableNotifyButton.disabled = true;
+    return;
+  }
+  enableNotifyButton.textContent = "通知を有効にする";
+  enableNotifyButton.disabled = false;
+};
+
+enableNotifyButton.addEventListener("click", async () => {
+  ensureNotificationPermission();
+  await registerPushSubscription();
+  updateEnableNotifyButton();
+});
 
 addButton.addEventListener("click", addTodo);
 todoInput.addEventListener("keydown", (event) => {
@@ -358,7 +382,9 @@ const checkDueSoonNotifications = () => {
   });
 };
 
-ensureNotificationPermission();
-registerPushSubscription();
+updateEnableNotifyButton();
+if ("Notification" in window && Notification.permission === "granted") {
+  registerPushSubscription();
+}
 renderTodos();
 setInterval(checkDueSoonNotifications, ALERT_CHECK_INTERVAL_MS);
