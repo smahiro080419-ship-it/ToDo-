@@ -103,14 +103,14 @@ const syncTodosToServer = (todos) => {
 
 const registerPushSubscription = async () => {
   if (!isPushConfigured() || !("serviceWorker" in navigator) || !("PushManager" in window)) {
-    return;
+    return false;
   }
 
   try {
     const registration = await navigator.serviceWorker.register("sw.js");
     const permission = await Notification.requestPermission();
     if (permission !== "granted") {
-      return;
+      return false;
     }
 
     let subscription = await registration.pushManager.getSubscription();
@@ -121,13 +121,15 @@ const registerPushSubscription = async () => {
       });
     }
 
-    await fetch(`${WORKER_URL}/api/subscribe`, {
+    const response = await fetch(`${WORKER_URL}/api/subscribe`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ clientId: getClientId(), subscription }),
     });
+    return response.ok;
   } catch (err) {
     console.error("push subscription failed", err);
+    return false;
   }
 };
 
@@ -384,8 +386,8 @@ const updateEnableNotifyButton = () => {
     return;
   }
   if (Notification.permission === "granted") {
-    enableNotifyButton.textContent = "通知は有効です";
-    enableNotifyButton.disabled = true;
+    enableNotifyButton.textContent = "通知は有効です(タップで再登録)";
+    enableNotifyButton.disabled = false;
     return;
   }
   if (Notification.permission === "denied") {
@@ -398,8 +400,17 @@ const updateEnableNotifyButton = () => {
 };
 
 enableNotifyButton.addEventListener("click", async () => {
+  enableNotifyButton.textContent = "登録中...";
+  enableNotifyButton.disabled = true;
   ensureNotificationPermission();
-  await registerPushSubscription();
+  const ok = await registerPushSubscription();
+  if (ok) {
+    saveTodos(loadTodos());
+  } else if (Notification.permission !== "denied") {
+    enableNotifyButton.textContent = "登録に失敗しました(タップで再試行)";
+    enableNotifyButton.disabled = false;
+    return;
+  }
   updateEnableNotifyButton();
 });
 
