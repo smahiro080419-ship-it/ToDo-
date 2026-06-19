@@ -4,6 +4,18 @@ const notifyInput = document.getElementById("notifyInput");
 const addButton = document.getElementById("addButton");
 const todoList = document.getElementById("todoList");
 const enableNotifyButton = document.getElementById("enableNotifyButton");
+const dueFieldPlaceholder = document.querySelector(".due-field-placeholder");
+
+const updateDuePlaceholder = () => {
+  if (!dueFieldPlaceholder) {
+    return;
+  }
+  dueFieldPlaceholder.classList.toggle("hidden", dueInput.value !== "");
+};
+
+dueInput.addEventListener("input", updateDuePlaceholder);
+dueInput.addEventListener("change", updateDuePlaceholder);
+updateDuePlaceholder();
 
 const STORAGE_KEY = "todoItems";
 const ALERT_CHECK_INTERVAL_MS = 60 * 1000;
@@ -334,6 +346,7 @@ const addTodo = () => {
   saveTodos(todos);
   todoInput.value = "";
   dueInput.value = "";
+  updateDuePlaceholder();
   renderTodos();
 };
 

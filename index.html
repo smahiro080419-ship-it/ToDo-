@@ -32,7 +32,10 @@
         </div>
         <div class="input-group">
           <input id="todoInput" type="text" placeholder="やることを入力してください" />
-          <input id="dueInput" type="datetime-local" placeholder="時間を入力してください" aria-label="期限日時" />
+          <div class="due-field">
+            <input id="dueInput" type="datetime-local" placeholder="時間を入力してください" aria-label="期限日時" />
+            <span class="due-field-placeholder" aria-hidden="true">時間を入力してください</span>
+          </div>
           <select id="notifyInput" aria-label="通知タイミング">
             <option value="1h" selected>1時間前に通知</option>
             <option value="2h">2時間前に通知</option>
