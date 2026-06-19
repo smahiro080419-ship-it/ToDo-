@@ -356,6 +356,7 @@ select {
   border-radius: 10px;
   font-size: 1rem;
   font-family: Georgia, "Times New Roman", serif;
+  text-align: left;
   color: var(--ink);
   background: linear-gradient(180deg, var(--parchment), var(--parchment-dark));
   outline: none;
