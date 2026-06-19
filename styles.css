@@ -577,3 +577,58 @@ button:active {
 .todo-item button.remove:hover {
   filter: brightness(1.1);
 }
+
+@media (max-width: 600px) {
+  .app-shell {
+    margin: 16px auto;
+    padding: 18px;
+    border-radius: 14px;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+    margin-bottom: 18px;
+  }
+
+  .library-entry {
+    padding: 36px 16px 18px;
+  }
+
+  .library-shelf {
+    display: none;
+  }
+
+  .drawer-handle {
+    width: 64px;
+  }
+
+  .input-group {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  button {
+    width: 100%;
+  }
+
+  .todo-item {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 16px 16px 16px 34px;
+  }
+
+  .todo-item button {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .todo-item.completed::after {
+    top: auto;
+    bottom: 12px;
+    right: 14px;
+  }
+
+  .todo-time-wrap {
+    width: 100%;
+  }
+}
