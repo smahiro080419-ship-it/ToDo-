@@ -28,8 +28,8 @@ const getNotifyMode = (todo) => todo.notify || "1h";
 // Fill these in after deploying the Cloudflare Worker (see worker/README setup steps):
 // WORKER_URL: the *.workers.dev URL printed by `wrangler deploy`.
 // VAPID_PUBLIC_KEY: the public key from `npx web-push generate-vapid-keys`.
-const WORKER_URL = "https://todo-push-worker.YOUR-SUBDOMAIN.workers.dev";
-const VAPID_PUBLIC_KEY = "REPLACE_WITH_VAPID_PUBLIC_KEY";
+const WORKER_URL = "https://todo-push-worker.s-mahiro080419.workers.dev";
+const VAPID_PUBLIC_KEY = "BLqjIEfKgEnDx-FPRx-jYF1JPboUX0DfP4MO6w6o4D3A7RvUgdiayITF3VGE_slVipsz_VIB0ibOxroKwxIIzJ8";
 
 const isPushConfigured = () =>
   !WORKER_URL.includes("YOUR-SUBDOMAIN") && !VAPID_PUBLIC_KEY.startsWith("REPLACE_WITH");
