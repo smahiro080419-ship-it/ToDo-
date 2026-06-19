@@ -306,8 +306,8 @@ h1 {
 }
 
 .input-group {
-  display: grid;
-  grid-template-columns: 1fr minmax(180px, 240px) auto;
+  display: flex;
+  flex-direction: column;
   gap: 14px;
   position: relative;
   z-index: 1;
@@ -325,7 +325,8 @@ h1 {
   }
 }
 
-input {
+input,
+select {
   width: 100%;
   padding: 16px 18px;
   border: 1px solid rgba(80, 56, 30, 0.4);
@@ -339,11 +340,16 @@ input {
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
+select {
+  cursor: pointer;
+}
+
 input::placeholder {
   color: rgba(59, 42, 26, 0.55);
 }
 
-input:focus {
+input:focus,
+select:focus {
   border-color: var(--gold);
   box-shadow: 0 0 0 4px rgba(202, 164, 74, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.4);
 }
@@ -603,7 +609,6 @@ button:active {
   }
 
   .input-group {
-    grid-template-columns: 1fr;
     gap: 10px;
   }
 

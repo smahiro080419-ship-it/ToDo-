@@ -1,0 +1,19 @@
+name = "todo-push-worker"
+main = "src/index.js"
+compatibility_date = "2024-09-23"
+
+# Run the due-date check every minute.
+[triggers]
+crons = ["* * * * *"]
+
+# Create with: wrangler kv namespace create TODO_KV
+# Then paste the returned id below.
+[[kv_namespaces]]
+binding = "TODO_KV"
+id = "REPLACE_WITH_KV_NAMESPACE_ID"
+
+# Secrets (set with `wrangler secret put <NAME>`), not stored here:
+#   VAPID_PUBLIC_KEY
+#   VAPID_PRIVATE_KEY
+#   VAPID_SUBJECT          (e.g. mailto:you@example.com)
+#   ALLOWED_ORIGIN         (e.g. https://smahiro080419-ship-it.github.io)

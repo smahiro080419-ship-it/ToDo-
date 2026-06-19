@@ -1,12 +1,113 @@
 const todoInput = document.getElementById("todoInput");
 const dueInput = document.getElementById("dueInput");
+const notifyInput = document.getElementById("notifyInput");
 const addButton = document.getElementById("addButton");
 const todoList = document.getElementById("todoList");
 
 const STORAGE_KEY = "todoItems";
-const DUE_SOON_THRESHOLD_MS = 60 * 60 * 1000;
 const ALERT_CHECK_INTERVAL_MS = 60 * 1000;
 const alertedTodoIds = new Set();
+
+const NOTIFY_OFFSET_MS = {
+  "1h": 60 * 60 * 1000,
+  "2h": 2 * 60 * 60 * 1000,
+  "3h": 3 * 60 * 60 * 1000,
+  "1d": 24 * 60 * 60 * 1000,
+};
+
+const NOTIFY_LABELS = {
+  "1h": "1時間前",
+  "2h": "2時間前",
+  "3h": "3時間前",
+  "1d": "1日前",
+  daily: "毎日",
+};
+
+const getNotifyMode = (todo) => todo.notify || "1h";
+
+// Fill these in after deploying the Cloudflare Worker (see worker/README setup steps):
+// WORKER_URL: the *.workers.dev URL printed by `wrangler deploy`.
+// VAPID_PUBLIC_KEY: the public key from `npx web-push generate-vapid-keys`.
+const WORKER_URL = "https://todo-push-worker.YOUR-SUBDOMAIN.workers.dev";
+const VAPID_PUBLIC_KEY = "REPLACE_WITH_VAPID_PUBLIC_KEY";
+
+const isPushConfigured = () =>
+  !WORKER_URL.includes("YOUR-SUBDOMAIN") && !VAPID_PUBLIC_KEY.startsWith("REPLACE_WITH");
+
+const getClientId = () => {
+  let id = localStorage.getItem("clientId");
+  if (!id) {
+    id = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    localStorage.setItem("clientId", id);
+  }
+  return id;
+};
+
+const urlBase64ToUint8Array = (base64String) => {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const rawData = atob(base64);
+  return Uint8Array.from([...rawData].map((char) => char.charCodeAt(0)));
+};
+
+const syncTodosToServer = (todos) => {
+  if (!isPushConfigured()) {
+    return;
+  }
+  fetch(`${WORKER_URL}/api/sync`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ clientId: getClientId(), todos }),
+  }).catch(() => {});
+};
+
+const registerPushSubscription = async () => {
+  if (!isPushConfigured() || !("serviceWorker" in navigator) || !("PushManager" in window)) {
+    return;
+  }
+
+  try {
+    const registration = await navigator.serviceWorker.register("sw.js");
+    const permission = await Notification.requestPermission();
+    if (permission !== "granted") {
+      return;
+    }
+
+    let subscription = await registration.pushManager.getSubscription();
+    if (!subscription) {
+      subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+      });
+    }
+
+    await fetch(`${WORKER_URL}/api/subscribe`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ clientId: getClientId(), subscription }),
+    });
+  } catch (err) {
+    console.error("push subscription failed", err);
+  }
+};
+
+const ensureNotificationPermission = () => {
+  if (!("Notification" in window)) {
+    return;
+  }
+  if (Notification.permission === "default") {
+    Notification.requestPermission();
+  }
+};
+
+const sendNotice = (title, body) => {
+  playNoticeSound();
+  if ("Notification" in window && Notification.permission === "granted") {
+    new Notification(title, { body });
+    return;
+  }
+  alert(`${title}\n${body}`);
+};
 
 const NOTICE_BEEP_COUNT = 3;
 const NOTICE_BEEP_INTERVAL_MS = 450;
@@ -44,6 +145,7 @@ const loadTodos = () => {
 
 const saveTodos = (todos) => {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
+  syncTodosToServer(todos);
 };
 
 const formatTodoTime = (value) => {
@@ -73,8 +175,10 @@ const isDueSoon = (todo) => {
     return false;
   }
 
+  const mode = getNotifyMode(todo);
+  const thresholdMs = mode === "daily" ? NOTIFY_OFFSET_MS["1d"] : NOTIFY_OFFSET_MS[mode];
   const diff = due.getTime() - Date.now();
-  return diff >= 0 && diff <= DUE_SOON_THRESHOLD_MS;
+  return diff >= 0 && diff <= thresholdMs;
 };
 
 const isOverdue = (todo) => {
@@ -86,8 +190,35 @@ const isOverdue = (todo) => {
   return !Number.isNaN(due.getTime()) && due.getTime() < Date.now();
 };
 
+const persistLastNotifiedDate = (todo) => {
+  const todos = loadTodos();
+  const match = todos.find((item) => getTodoKey(item) === getTodoKey(todo));
+  if (match) {
+    match.lastNotifiedDate = todo.lastNotifiedDate;
+    saveTodos(todos);
+  }
+};
+
 const notifyDueSoon = (todo) => {
   if (!todo.dueTime || todo.done) {
+    return;
+  }
+
+  const due = new Date(todo.dueTime);
+  if (Number.isNaN(due.getTime())) {
+    return;
+  }
+
+  const mode = getNotifyMode(todo);
+
+  if (mode === "daily") {
+    const today = new Date().toDateString();
+    if (todo.lastNotifiedDate === today) {
+      return;
+    }
+    todo.lastNotifiedDate = today;
+    persistLastNotifiedDate(todo);
+    sendNotice("Todoのお知らせ", `${todo.text}\n期限: ${formatTodoTime(todo.dueTime)}`);
     return;
   }
 
@@ -98,8 +229,7 @@ const notifyDueSoon = (todo) => {
 
   if (isDueSoon(todo)) {
     alertedTodoIds.add(key);
-    playNoticeSound();
-    alert(`期限が近いTodoがあります:\n${todo.text}\n期限: ${formatTodoTime(todo.dueTime)}`);
+    sendNotice("期限が近いTodoがあります", `${todo.text}\n期限: ${formatTodoTime(todo.dueTime)}`);
   }
 };
 
@@ -153,7 +283,7 @@ const renderTodos = () => {
 
       const due = document.createElement("time");
       due.className = "todo-time";
-      due.textContent = `期限: ${formatTodoTime(todo.dueTime)}`;
+      due.textContent = `期限: ${formatTodoTime(todo.dueTime)} / 通知: ${NOTIFY_LABELS[getNotifyMode(todo)]}`;
       if (overdue) {
         due.textContent += "（期限切れ）";
       } else if (dueSoon) {
@@ -163,9 +293,7 @@ const renderTodos = () => {
       info.appendChild(dueWrap);
     }
 
-    if (dueSoon) {
-      notifyDueSoon(todo);
-    }
+    notifyDueSoon(todo);
 
     const toggle = document.createElement("button");
     toggle.textContent = todo.done ? "元に戻す" : "完了";
@@ -194,13 +322,17 @@ const renderTodos = () => {
 const addTodo = () => {
   const text = todoInput.value.trim();
   const dueTime = dueInput.value;
+  const notify = notifyInput.value;
   if (text === "") {
     todoInput.focus();
     return;
   }
 
+  ensureNotificationPermission();
+  registerPushSubscription();
+
   const todos = loadTodos();
-  todos.push({ text, dueTime: dueTime || null, done: false });
+  todos.push({ text, dueTime: dueTime || null, done: false, notify, lastNotifiedDate: null });
   saveTodos(todos);
   todoInput.value = "";
   dueInput.value = "";
@@ -226,5 +358,7 @@ const checkDueSoonNotifications = () => {
   });
 };
 
+ensureNotificationPermission();
+registerPushSubscription();
 renderTodos();
 setInterval(checkDueSoonNotifications, ALERT_CHECK_INTERVAL_MS);
