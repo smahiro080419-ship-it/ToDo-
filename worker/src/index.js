@@ -99,6 +99,8 @@ const sendPushToClient = async (env, clientId, title, body) => {
   try {
     const payload = await buildPushPayload(message, subscription, vapidKeys);
     const res = await fetch(subscription.endpoint, payload);
+    const resBody = await res.text();
+    console.log("push send result", clientId, res.status, resBody);
     if (res.status === 404 || res.status === 410) {
       await env.TODO_KV.delete(`sub:${clientId}`);
     }
