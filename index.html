@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ToDoリスト</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="app-shell">
+    <h1>ToDoリスト</h1>
+    <section class="todo-panel">
+      <div class="input-group">
+        <input id="todoInput" type="text" placeholder="やることを入力してください" />
+        <input id="dueInput" type="datetime-local" aria-label="期限日時" />
+        <button id="addButton">追加</button>
+      </div>
+      <ul id="todoList" class="todo-list"></ul>
+    </section>
+  </main>
+  <script src="script.js"></script>
+</body>
+</html>
