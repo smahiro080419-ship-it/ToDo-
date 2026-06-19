@@ -8,12 +8,31 @@
 </head>
 <body>
   <main class="app-shell">
+    <div class="dust" aria-hidden="true">
+      <span class="mote mote-1"></span>
+      <span class="mote mote-2"></span>
+      <span class="mote mote-3"></span>
+      <span class="mote mote-4"></span>
+      <span class="mote mote-5"></span>
+    </div>
     <h1>ToDoリスト</h1>
     <section class="todo-panel">
-      <div class="input-group">
-        <input id="todoInput" type="text" placeholder="やることを入力してください" />
-        <input id="dueInput" type="datetime-local" aria-label="期限日時" />
-        <button id="addButton">追加</button>
+      <div class="library-entry">
+        <span class="drawer-handle" aria-hidden="true"></span>
+        <div class="library-shelf" aria-hidden="true">
+          <span class="shelf-board"></span>
+          <span class="book book-1"></span>
+          <span class="book book-2"></span>
+          <span class="book book-3"></span>
+          <span class="book book-4"></span>
+          <span class="book book-5"></span>
+          <span class="book book-6"></span>
+        </div>
+        <div class="input-group">
+          <input id="todoInput" type="text" placeholder="やることを入力してください" />
+          <input id="dueInput" type="datetime-local" aria-label="期限日時" />
+          <button id="addButton">追加</button>
+        </div>
       </div>
       <ul id="todoList" class="todo-list"></ul>
     </section>

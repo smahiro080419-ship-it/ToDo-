@@ -8,23 +8,33 @@ const DUE_SOON_THRESHOLD_MS = 60 * 60 * 1000;
 const ALERT_CHECK_INTERVAL_MS = 60 * 1000;
 const alertedTodoIds = new Set();
 
+const NOTICE_BEEP_COUNT = 3;
+const NOTICE_BEEP_INTERVAL_MS = 450;
+
 const playNoticeSound = () => {
   const AudioContext = window.AudioContext || window.webkitAudioContext;
   if (!AudioContext) {
     return;
   }
   const context = new AudioContext();
-  const oscillator = context.createOscillator();
-  const gain = context.createGain();
-  oscillator.type = "triangle";
-  oscillator.frequency.setValueAtTime(880, context.currentTime);
-  gain.gain.setValueAtTime(0, context.currentTime);
-  gain.gain.linearRampToValueAtTime(0.14, context.currentTime + 0.01);
-  gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.35);
-  oscillator.connect(gain);
-  gain.connect(context.destination);
-  oscillator.start();
-  oscillator.stop(context.currentTime + 0.35);
+
+  const beep = () => {
+    const oscillator = context.createOscillator();
+    const gain = context.createGain();
+    oscillator.type = "triangle";
+    oscillator.frequency.setValueAtTime(880, context.currentTime);
+    gain.gain.setValueAtTime(0, context.currentTime);
+    gain.gain.linearRampToValueAtTime(0.14, context.currentTime + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.35);
+    oscillator.connect(gain);
+    gain.connect(context.destination);
+    oscillator.start();
+    oscillator.stop(context.currentTime + 0.35);
+  };
+
+  for (let i = 0; i < NOTICE_BEEP_COUNT; i += 1) {
+    setTimeout(beep, i * NOTICE_BEEP_INTERVAL_MS);
+  }
 };
 
 const loadTodos = () => {
@@ -128,6 +138,19 @@ const renderTodos = () => {
     }
 
     if (todo.dueTime) {
+      const dueWrap = document.createElement("div");
+      dueWrap.className = "todo-time-wrap";
+
+      const miniShelf = document.createElement("span");
+      miniShelf.className = "mini-shelf";
+      miniShelf.setAttribute("aria-hidden", "true");
+      miniShelf.innerHTML =
+        '<span class="mini-book mini-book-1"></span>' +
+        '<span class="mini-book mini-book-2"></span>' +
+        '<span class="mini-book mini-book-3"></span>' +
+        '<span class="mini-shelf-board"></span>';
+      dueWrap.appendChild(miniShelf);
+
       const due = document.createElement("time");
       due.className = "todo-time";
       due.textContent = `期限: ${formatTodoTime(todo.dueTime)}`;
@@ -136,7 +159,8 @@ const renderTodos = () => {
       } else if (dueSoon) {
         due.textContent += "（もうすぐ）";
       }
-      info.appendChild(due);
+      dueWrap.appendChild(due);
+      info.appendChild(dueWrap);
     }
 
     if (dueSoon) {
