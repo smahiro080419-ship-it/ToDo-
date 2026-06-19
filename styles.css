@@ -336,6 +336,14 @@ h1 {
   animation: glowIn 0.65s ease both;
 }
 
+.input-group > * {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  align-self: stretch;
+  box-sizing: border-box;
+}
+
 @keyframes glowIn {
   from {
     opacity: 0;
